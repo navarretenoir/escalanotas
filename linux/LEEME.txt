@@ -1,0 +1,3 @@
+Escala de Notas para Linux — desarrollada por Javiera Navarrete.
+Paquetes: RPM, DEB, AppImage, Flatpak, Snap y tarball (escala-notas-<v>-linux-x86_64.tar.gz: descomprimir y correr ./instalar.sh).
+Comprobar integridad: sha256sum -c SHA256SUMS

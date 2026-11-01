@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Escala de Notas</title>
+<!-- Escala de Notas — cálculo de notas escolares en Chile (1,0 a 7,0). Sin internet, sin bibliotecas externas.
+     JavaScript ES5 y CSS sin grilla: corre igual en Android 4, WebKit antiguo y navegadores actuales.
+     Desarrollado por Javiera Navarrete. Licencia GPL-3.0-or-later. -->
+<style>
+/* Escala de Notas · concepto «cuaderno de cuadros». Todo se mide en cuadros de 24 px (--c): márgenes, filas y alturas
+   de línea caen sobre la cuadrícula. Tipografía de Apple: en Mac/iPhone/iPad usa San Francisco (SF Pro) del sistema; en
+   el resto, Inter incluida (OFL), la libre más cercana a SF. Cifras tabulares en todo. Claro = cuaderno · oscuro = pizarra. */
+@font-face { font-family: "InterIncl"; src: url(fuentes/Inter-400.ttf) format("truetype"); font-weight: 400; }
+@font-face { font-family: "InterIncl"; src: url(fuentes/Inter-500.ttf) format("truetype"); font-weight: 500; }
+@font-face { font-family: "InterIncl"; src: url(fuentes/Inter-600.ttf) format("truetype"); font-weight: 600; }
+@font-face { font-family: "InterDisplayIncl"; src: url(fuentes/InterDisplay-700.ttf) format("truetype"); font-weight: 700; }
+
+:root {
+  --c: 24px;
+  --mesa: #e9e7e1; --hoja: #fcfbf7; --cuadro: rgba(70,118,190,.17); --margen: #e06a60;
+  --tinta: #22262e; --lapiz: #5f6168; --tenue: #8b8c90; --azul: #1d4fb0; --rojo: #c8322b; --destacador: rgba(255,214,10,.42);
+  --campo-linea: #9aa3b5; --boton: #1d4fb0; --boton-txt: #fff;
+}
+:root[data-tema="oscuro"] {
+  --mesa: #141b18; --hoja: #1d2823; --cuadro: rgba(255,255,255,.065); --margen: #8a4a43;
+  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #7f887f; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
+  --campo-linea: #56645c; --boton: #ece8dc; --boton-txt: #141b18;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-tema="claro"]) {
+  --mesa: #141b18; --hoja: #1d2823; --cuadro: rgba(255,255,255,.065); --margen: #8a4a43;
+  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #7f887f; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
+  --campo-linea: #56645c; --boton: #ece8dc; --boton-txt: #141b18; } }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--mesa); color: var(--tinta); }
+body { font: 16px/24px -apple-system, BlinkMacSystemFont, "SF Pro Text", "InterIncl", "Inter", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-feature-settings: "tnum" 1, "cv05" 1; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased;
+       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.envoltura { max-width: 1152px; margin: 0 auto; padding: var(--c) var(--c) calc(var(--c) * 2); }
+.cifra, input, select, .dato b, .tabla-escala td, .curso td.num { font-variant-numeric: tabular-nums; }
+
+/* cabecera */
+header.cabeza { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: var(--c); }
+.icono { width: 48px; height: 48px; margin-right: 16px; -webkit-flex: none; flex: none; }
+.marca { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; }
+h1 { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "InterDisplayIncl", "Inter Display", "InterIncl", "Segoe UI Variable Display", "Segoe UI", sans-serif; font-weight: 700; font-size: 30px; line-height: 36px; margin: 0; letter-spacing: -.022em; }
+.sub { color: var(--lapiz); font-size: 14.5px; line-height: 20px; }
+.tema { display: -webkit-box; display: -webkit-flex; display: flex; }
+.tema button { border: 0; background: none; color: var(--lapiz); font-size: 13.5px; line-height: 24px; font-weight: 500; padding: 0 9px; cursor: pointer; border-bottom: 2px solid transparent; }
+.tema button.on { color: var(--tinta); border-bottom-color: var(--azul); }
+
+.columnas { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin: 0 calc(var(--c) / -2); }
+.col { padding: 0 calc(var(--c) / 2); width: 100%; }
+@media (min-width: 900px) { .col-izq { width: 31%; } .col-der { width: 69%; } }
+
+/* la hoja cuadriculada, con margen rojo a dos cuadros */
+.hoja { position: relative; background-color: var(--hoja); margin-bottom: var(--c);
+  background-image: linear-gradient(to right, var(--cuadro) 1px, transparent 1px), linear-gradient(to bottom, var(--cuadro) 1px, transparent 1px);
+  background-size: var(--c) var(--c); background-position: -1px -1px;
+  padding: var(--c) var(--c) var(--c) calc(var(--c) * 3); box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 18px -10px rgba(0,0,0,.25); }
+.hoja:before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--c) * 2); width: 2px; background: var(--margen); opacity: .8; }
+h2 { font-size: 13px; line-height: 24px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--lapiz); margin: 0 0 var(--c); }
+.hoja h2 { margin: 0; height: var(--c); }
+
+/* ajustes: cada campo es escritura sobre la línea */
+.bloque { margin-bottom: calc(var(--c) * 1.5); }
+.fila { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-end; align-items: flex-end; min-height: calc(var(--c) * 2); padding-bottom: 6px; }
+.fila label { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; font-size: 15.5px; line-height: 20px; padding-right: 10px; }
+.fila .ayuda { display: block; font-size: 12.5px; line-height: 16px; color: var(--tenue); }
+input, select, textarea { color: var(--tinta); background: transparent; border: 0; border-bottom: 2px solid var(--campo-linea); border-radius: 0; padding: 2px 2px 3px; outline: none; font-size: 17px; line-height: 22px; }
+select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 18px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--lapiz) 50%), linear-gradient(135deg, var(--lapiz) 50%, transparent 50%);
+  background-position: calc(100% - 9px) 11px, calc(100% - 4px) 11px; background-size: 5px 5px; background-repeat: no-repeat; }
+select option { background: var(--hoja); color: var(--tinta); }
+input:focus, select:focus, textarea:focus { border-bottom-color: var(--azul); }
+::placeholder { color: var(--tenue); opacity: 1; }
+.fila input, .fila select { width: 104px; text-align: right; }
+input, select, textarea, button { font-family: inherit; }
+.fila input[type=text].ancho, .fila input[type=date] { width: 58%; text-align: left; font-size: 15.5px; }
+.fila select#redondeo, .fila select#paso { width: 128px; text-align: left; font-size: 15.5px; }
+.rapida { display: -webkit-box; display: -webkit-flex; display: flex; margin: 8px 0 6px; }
+.rapida button { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; font: inherit; font-size: 15px; line-height: 34px; font-weight: 500; margin-right: 8px; border: 1.5px solid var(--campo-linea); border-radius: 8px; background: none; color: var(--tinta); cursor: pointer; }
+.rapida button:last-child { margin-right: 0; }
+.rapida button.on { border-color: var(--azul); color: var(--azul); font-weight: 700; }
+
+/* resumen: cifras grandes escritas sobre la hoja, alineadas a dos cuadros */
+.resumen { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+.dato { -webkit-box-flex: 1; -webkit-flex: 1 1 144px; flex: 1 1 144px; padding-right: var(--c); min-height: calc(var(--c) * 3); }
+.dato b { display: block; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "InterDisplayIncl", "Inter Display", "InterIncl", "Segoe UI Variable Display", "Segoe UI", sans-serif; font-weight: 700; font-size: 34px; line-height: 48px; letter-spacing: -.02em; color: var(--azul); }
+.dato span { display: block; font-size: 13px; line-height: 24px; color: var(--lapiz); }
+.calc { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin-top: var(--c); }
+.calc > div { -webkit-box-flex: 1; -webkit-flex: 1 1 240px; flex: 1 1 240px; padding-right: var(--c); }
+.calc label { font-size: 13.5px; line-height: 24px; color: var(--lapiz); display: block; }
+.calc input { width: 100%; font-size: 20px; line-height: 24px; }
+.calc .salida { font-size: 15px; line-height: 24px; min-height: calc(var(--c) * 2); padding-top: 6px; }
+.nota-roja { color: var(--rojo); font-weight: 700; } .nota-azul { color: var(--azul); font-weight: 700; }
+
+/* tabla: sin bordes propios, cada fila mide exactamente un cuadro */
+.cab-tabla { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: calc(var(--c) * 2); }
+.cab-tabla h2 { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; }
+.cab-tabla label { font-size: 13.5px; color: var(--lapiz); cursor: pointer; }
+.tabla-escala { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; -webkit-align-items: flex-start; align-items: flex-start; margin-right: calc(var(--c) * -1); }
+.tabla-escala table { border-collapse: collapse; margin: 0 var(--c) var(--c) 0; -webkit-box-flex: 1; -webkit-flex: 1 1 168px; flex: 1 1 168px; }
+.tabla-escala th { font-size: 11.5px; line-height: 24px; font-weight: 600; letter-spacing: .04em; color: var(--tenue); text-transform: uppercase; height: var(--c); padding: 0 6px; text-align: right; }
+.tabla-escala td { height: var(--c); padding: 0 6px; text-align: right; font-size: 16px; line-height: 24px; }
+.tabla-escala tr.aprob td { background: var(--destacador); }
+.tabla-escala td.pct { color: var(--tenue); font-size: 13px; }
+.oculto-pct .pct { display: none; }
+.barra { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin-top: var(--c); }
+.boton { font: inherit; font-size: 14.5px; line-height: 20px; font-weight: 600; padding: 9px 15px; margin: 0 8px 8px 0; cursor: pointer; background: var(--hoja); color: var(--tinta); border: 1.5px solid var(--campo-linea); border-radius: 8px; }
+.boton.prim { background: var(--boton); color: var(--boton-txt); border-color: var(--boton); }
+.boton:hover { background: var(--tinta); color: var(--hoja); } .boton.prim:hover { opacity: .9; background: var(--boton); color: var(--boton-txt); }
+.boton:active { -webkit-transform: translateY(1px); transform: translateY(1px); }
+.boton:focus-visible, .tema button:focus-visible, .rapida button:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+textarea { width: 100%; min-height: calc(var(--c) * 5); resize: vertical; font-family: inherit; font-size: 15px; line-height: 24px; border-bottom-width: 0; padding: 0; background: transparent; }
+.curso table { width: 100%; border-collapse: collapse; margin-top: var(--c); }
+.curso th { font-size: 11.5px; line-height: 24px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--tenue); text-align: left; height: var(--c); padding: 0 4px; }
+.curso td { height: var(--c); padding: 0 4px; line-height: 24px; }
+.curso td.num, .curso th.num { text-align: right; }
+.vacio { color: var(--lapiz); font-size: 14.5px; margin: 0; }
+.hist { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-end; align-items: flex-end; height: calc(var(--c) * 4); margin-top: var(--c); }
+.hist div { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; margin: 0 6px; background: var(--azul); min-height: 2px; opacity: .8; }
+.hist div.r { background: var(--rojo); }
+.hist-et { display: -webkit-box; display: -webkit-flex; display: flex; font-size: 12px; line-height: 24px; color: var(--lapiz); }
+.hist-et span { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; text-align: center; }
+.pie { color: var(--tenue); font-size: 13px; line-height: 24px; margin-top: var(--c); }
+.aviso { position: fixed; left: 50%; bottom: 28px; -webkit-transform: translateX(-50%); transform: translateX(-50%); background: var(--tinta); color: var(--hoja);
+         padding: 8px 14px; font-size: 14.5px; opacity: 0; -webkit-transition: opacity .2s; transition: opacity .2s; pointer-events: none; }
+.aviso.ver { opacity: 1; }
+.solo-imprimir { display: none; }
+@media (max-width: 600px) { :root { --c: 22px; } .hoja { padding-left: calc(var(--c) * 2); } .hoja:before { left: calc(var(--c) * 1.5); } h1 { font-size: 26px; } }
+@media (prefers-reduced-motion: reduce) { * { -webkit-transition: none !important; transition: none !important; } }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  :root { --mesa: #fff; --hoja: #fff; --tinta: #000; --azul: #0b3a8c; --rojo: #b00; --cuadro: rgba(70,118,190,.22); }
+  .no-imprimir, .col-izq, .calc, .curso-entrada { display: none !important; }
+  .col-der { width: 100% !important; } .hoja { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .solo-imprimir { display: block; }
+}
+
+/* sin flechitas del sistema en los campos numéricos (se escribe el número) */
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+/* interruptor estilo iOS en lugar de la casilla */
+.interruptor { display: -webkit-inline-box; display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; cursor: pointer; font-size: 13.5px; color: var(--lapiz); }
+.interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.interruptor .pista { position: relative; width: 36px; height: 22px; border-radius: 11px; background: var(--campo-linea); margin-right: 8px; -webkit-transition: background .2s; transition: background .2s; -webkit-flex: none; flex: none; }
+.interruptor .pista:after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); -webkit-transition: -webkit-transform .2s; transition: transform .2s; }
+.interruptor input:checked + .pista { background: var(--azul); }
+.interruptor input:checked + .pista:after { -webkit-transform: translateX(14px); transform: translateX(14px); }
+.interruptor input:focus-visible + .pista { outline: 2px solid var(--azul); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="envoltura">
+  <header class="cabeza">
+    <svg class="icono" viewBox="0 0 1024 1024" aria-hidden="true">
+  <defs>
+    <linearGradient id="ic-fondo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f6fd1"/><stop offset="1" stop-color="#173f8f"/></linearGradient>
+    <clipPath id="ic-hoja"><rect x="292" y="214" width="520" height="644" rx="34"/></clipPath>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#ic-fondo)"/>
+  <rect x="302" y="230" width="520" height="644" rx="34" fill="#0d2a63" opacity=".35"/>
+  <rect x="292" y="214" width="520" height="644" rx="34" fill="#fdfcf8"/>
+  <g clip-path="url(#ic-hoja)" stroke="#b9cdea" stroke-width="3"><line x1="332" y1="214" x2="332" y2="858"/><line x1="372" y1="214" x2="372" y2="858"/><line x1="412" y1="214" x2="412" y2="858"/><line x1="452" y1="214" x2="452" y2="858"/><line x1="492" y1="214" x2="492" y2="858"/><line x1="532" y1="214" x2="532" y2="858"/><line x1="572" y1="214" x2="572" y2="858"/><line x1="612" y1="214" x2="612" y2="858"/><line x1="652" y1="214" x2="652" y2="858"/><line x1="692" y1="214" x2="692" y2="858"/><line x1="732" y1="214" x2="732" y2="858"/><line x1="772" y1="214" x2="772" y2="858"/><line x1="292" y1="254" x2="812" y2="254"/><line x1="292" y1="294" x2="812" y2="294"/><line x1="292" y1="334" x2="812" y2="334"/><line x1="292" y1="374" x2="812" y2="374"/><line x1="292" y1="414" x2="812" y2="414"/><line x1="292" y1="454" x2="812" y2="454"/><line x1="292" y1="494" x2="812" y2="494"/><line x1="292" y1="534" x2="812" y2="534"/><line x1="292" y1="574" x2="812" y2="574"/><line x1="292" y1="614" x2="812" y2="614"/><line x1="292" y1="654" x2="812" y2="654"/><line x1="292" y1="694" x2="812" y2="694"/><line x1="292" y1="734" x2="812" y2="734"/><line x1="292" y1="774" x2="812" y2="774"/><line x1="292" y1="814" x2="812" y2="814"/><line x1="292" y1="854" x2="812" y2="854"/></g>
+  <line x1="384" y1="214" x2="384" y2="858" stroke="#e0625a" stroke-width="6"/>
+  <rect x="258" y="262" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="358" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="454" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="550" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="646" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="742" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/><rect x="258" y="838" width="68" height="22" rx="11" fill="#d9dde3" stroke="#9aa3ad" stroke-width="4"/>
+  <path d="M441.34130859375 650.0 517.63525390625 499.609375V499.365234375H428.89013671875V468.115234375H555.47705078125V498.9990234375L479.42724609375 650.0ZM566.58544921875 687.9638671875 575.61865234375 620.3369140625H610.16455078125L591.73193359375 687.9638671875ZM703.30419921875 652.9296875Q680.47705078125 652.9296875 663.99755859375 641.51611328125Q647.51806640625 630.1025390625 638.60693359375 609.1064453125Q629.69580078125 588.1103515625 629.69580078125 559.1796875Q629.69580078125 530.126953125 638.5458984375 509.130859375Q647.39599609375 488.134765625 663.87548828125 476.66015625Q680.35498046875 465.185546875 703.30419921875 465.185546875Q726.13134765625 465.185546875 742.671875 476.59912109375Q759.21240234375 488.0126953125 768.0625 509.06982421875Q776.91259765625 530.126953125 776.91259765625 559.1796875Q776.91259765625 588.1103515625 768.0625 609.1064453125Q759.21240234375 630.1025390625 742.671875 641.51611328125Q726.13134765625 652.9296875 703.30419921875 652.9296875ZM703.30419921875 622.900390625Q715.14501953125 622.900390625 723.68994140625 615.2099609375Q732.23486328125 607.51953125 736.87353515625 593.2373046875Q741.51220703125 578.955078125 741.51220703125 559.1796875Q741.51220703125 539.2822265625 736.87353515625 525.0Q732.23486328125 510.7177734375 723.68994140625 502.96630859375Q715.14501953125 495.21484375 703.30419921875 495.21484375Q691.46337890625 495.21484375 682.857421875 502.96630859375Q674.25146484375 510.7177734375 669.673828125 525.0Q665.09619140625 539.2822265625 665.09619140625 559.1796875Q665.09619140625 578.955078125 669.673828125 593.2373046875Q674.25146484375 607.51953125 682.857421875 615.2099609375Q691.46337890625 622.900390625 703.30419921875 622.900390625Z" fill="#1d4fb0"/>
+  <rect x="452" y="690" width="232" height="16" rx="8" fill="#1d4fb0" opacity=".85"/>
+</svg>
+    <div class="marca"><h1>Escala de Notas</h1><div class="sub">Notas escolares en Chile, de 1,0 a 7,0</div></div>
+    <div class="tema no-imprimir" id="tema"><button data-t="claro">Claro</button><button data-t="oscuro">Oscuro</button><button data-t="auto">Auto</button></div>
+  </header>
+
+  <div class="solo-imprimir" id="encabezado-impreso"></div>
+
+  <div class="columnas">
+    <div class="col col-izq">
+      <section class="bloque">
+        <h2>Escala</h2>
+        <div class="fila"><label for="pmax">Puntaje máximo</label><input id="pmax" type="number" inputmode="decimal" min="1" step="0.5" value="60"></div>
+        <div class="fila"><label for="exig">Exigencia<span class="ayuda">% del puntaje para el 4,0</span></label><input id="exig" type="number" inputmode="decimal" min="1" max="99" step="1" value="60"></div>
+        <div class="rapida" id="exig-rapida"><button data-v="40">40 %</button><button data-v="50">50 %</button><button data-v="60">60 %</button></div>
+        <div class="fila"><label for="paso">Intervalo de puntaje</label><select id="paso"><option value="1">1 punto</option><option value="0.5">½ punto</option><option value="0.25">¼ punto</option></select></div>
+      </section>
+      <section class="bloque">
+        <h2>Notas</h2>
+        <div class="fila"><label for="nmin">Nota mínima</label><input id="nmin" type="text" inputmode="decimal" value="1,0"></div>
+        <div class="fila"><label for="napr">Nota de aprobación</label><input id="napr" type="text" inputmode="decimal" value="4,0"></div>
+        <div class="fila"><label for="nmax">Nota máxima</label><input id="nmax" type="text" inputmode="decimal" value="7,0"></div>
+        <div class="fila"><label for="redondeo">Redondeo<span class="ayuda">Lo habitual: aproximar a un decimal</span></label>
+          <select id="redondeo"><option value="aprox1">Aproximar</option><option value="trunc1">Truncar</option><option value="aprox2">2 decimales</option></select></div>
+      </section>
+      <section class="bloque no-imprimir">
+        <h2>Datos para exportar</h2>
+        <div class="fila"><label for="d-eval">Evaluación</label><input id="d-eval" type="text" class="ancho" placeholder="Prueba de Historia"></div>
+        <div class="fila"><label for="d-curso">Curso</label><input id="d-curso" type="text" class="ancho" placeholder="2° medio B"></div>
+        <div class="fila"><label for="d-doc">Docente</label><input id="d-doc" type="text" class="ancho" placeholder="Opcional"></div>
+        <div class="fila"><label for="d-est">Establecimiento</label><input id="d-est" type="text" class="ancho" placeholder="Opcional"></div>
+        <div class="fila"><label for="d-fecha">Fecha</label><input id="d-fecha" type="date"></div>
+      </section>
+    </div>
+
+    <div class="col col-der">
+      <section class="hoja">
+        <div class="resumen" id="resumen"></div>
+        <div class="calc no-imprimir">
+          <div><label for="q-pts">¿Qué nota es este puntaje?</label><input id="q-pts" type="text" inputmode="decimal" placeholder="Puntaje"><div class="salida" id="q-pts-r"></div></div>
+          <div><label for="q-nota">¿Cuántos puntos para esta nota?</label><input id="q-nota" type="text" inputmode="decimal" placeholder="Nota, ej. 5,5"><div class="salida" id="q-nota-r"></div></div>
+        </div>
+      </section>
+
+      <section class="hoja">
+        <div class="cab-tabla"><h2>Tabla de notas</h2><label class="interruptor no-imprimir"><input type="checkbox" id="ver-pct"><span class="pista"></span>% de logro</label></div>
+        <div class="tabla-escala oculto-pct" id="tabla"></div>
+        <div class="barra no-imprimir">
+          <button class="boton prim" data-exp="pdf">PDF / Imprimir</button>
+          <button class="boton" data-exp="xlsx">Excel</button>
+          <button class="boton" data-exp="docx">Word</button>
+          <button class="boton" data-exp="csv">CSV</button>
+          <button class="boton" data-exp="png">Imagen</button>
+          <button class="boton" data-exp="copiar">Copiar</button>
+        </div>
+      </section>
+
+      <section class="hoja curso">
+        <h2>Notas del curso</h2>
+        <div class="curso-entrada no-imprimir"><textarea id="lista" placeholder="Pega aquí la lista desde Excel o escribe una por línea:&#10;Ana Pérez    48&#10;Benjamín Soto    31,5"></textarea></div>
+        <div id="curso-res"></div>
+      </section>
+    </div>
+  </div>
+  <div class="pie">Escala de Notas — hecha para el cálculo de notas escolares en Chile. Desarrollada por Javiera Navarrete.</div>
+</div>
+<div class="aviso" id="aviso"></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (id) { return document.getElementById(id); };
+var estado = {};
+var GUARDAR = ["pmax", "exig", "paso", "nmin", "napr", "nmax", "redondeo", "d-eval", "d-curso", "d-doc", "d-est", "lista"];
+
+/* ------------------------------------------------------------------ números con coma decimal */
+function num(v) { if (typeof v === "number") return v; v = String(v || "").replace(/\s/g, "").replace(",", "."); return v === "" ? NaN : parseFloat(v); }
+function coma(x, dec) { if (isNaN(x)) return "—"; return x.toFixed(dec === undefined ? 1 : dec).replace(".", ","); }
+function redondear(n, modo) {
+  if (modo === "trunc1") return Math.floor(n * 10 + 1e-9) / 10;
+  if (modo === "aprox2") return Math.round(n * 100 + 1e-9) / 100;
+  return Math.round(n * 10 + 1e-9) / 10;                       // aproximar: 3,95 → 4,0
+}
+
+/* ------------------------------------------------------------------ fórmula (escala por tramos, Mineduc) */
+function leer() {
+  var e = { pmax: num($("pmax").value), exig: num($("exig").value) / 100, paso: num($("paso").value),
+            nmin: num($("nmin").value), napr: num($("napr").value), nmax: num($("nmax").value), modo: $("redondeo").value };
+  e.ok = e.pmax > 0 && e.exig > 0 && e.exig < 1 && e.nmin < e.napr && e.napr < e.nmax && e.paso > 0;
+  e.papr = e.pmax * e.exig;                                     // puntaje exacto para la nota de aprobación (sin redondear)
+  e.dec = e.modo === "aprox2" ? 2 : 1;
+  return e;
+}
+function notaDe(p, e) {
+  var n = p < e.papr ? e.nmin + (e.napr - e.nmin) * p / e.papr
+                     : e.napr + (e.nmax - e.napr) * (p - e.papr) / (e.pmax - e.papr);
+  return Math.min(e.nmax, Math.max(e.nmin, redondear(n, e.modo)));
+}
+function puntosPara(nota, e) {                                  // mínimo puntaje (en múltiplos del paso) que alcanza la nota
+  if (nota <= e.nmin) return 0;
+  if (nota > e.nmax) return NaN;
+  for (var p = 0; p <= e.pmax + 1e-9; p += e.paso) if (notaDe(p, e) >= nota - 1e-9) return Math.round(p * 100) / 100;
+  return NaN;
+}
+function filas(e) {
+  var out = [], n = Math.round(e.pmax / e.paso);
+  for (var i = 0; i <= n; i++) { var p = Math.round(i * e.paso * 100) / 100; out.push({ p: p, pct: p / e.pmax * 100, n: notaDe(p, e) }); }
+  if (out[out.length - 1].p < e.pmax) out.push({ p: e.pmax, pct: 100, n: notaDe(e.pmax, e) });
+  return out;
+}
+function claseNota(n, e) { return n < e.napr ? "nota-roja" : "nota-azul"; }
+function pts(p) { return (Math.round(p * 100) / 100).toString().replace(".", ","); }
+
+/* ------------------------------------------------------------------ dibujo */
+function dibujar() {
+  var e = leer(); estado.e = e;
+  var exs = $("exig-rapida").getElementsByTagName("button");
+  for (var i = 0; i < exs.length; i++) exs[i].className = Math.abs(num(exs[i].getAttribute("data-v")) - e.exig * 100) < 1e-9 ? "on" : "";
+  if (!e.ok) { $("resumen").innerHTML = '<div class="dato"><b>Revisa los datos</b><span>La nota mínima debe ser menor que la de aprobación, y esta menor que la máxima.</span></div>'; $("tabla").innerHTML = ""; return; }
+  var f = filas(e); estado.filas = f;
+  var paprMin = puntosPara(e.napr, e);
+  $("resumen").innerHTML =
+    dato(pts(paprMin), "puntos para el " + coma(e.napr)) +
+    dato(coma(e.exig * 100, 0) + " %", "exigencia") +
+    dato(pts(e.pmax), "puntaje máximo") +
+    dato(coma((e.nmax - e.napr) / (e.pmax - e.papr), 3), "de nota por cada punto");
+  // tabla repartida en columnas legibles (cada una de ~20 filas)
+  var porCol = f.length <= 31 ? f.length : Math.ceil(f.length / Math.ceil(f.length / 25));
+  var html = "";
+  for (var c = 0; c < f.length; c += porCol) {
+    html += "<table><thead><tr><th>Puntaje</th><th class='pct'>%</th><th>Nota</th></tr></thead><tbody>";
+    for (var k = c; k < Math.min(f.length, c + porCol); k++) {
+      var r = f[k], aprob = r.p === paprMin;
+      html += "<tr" + (aprob ? " class='aprob'" : "") + "><td>" + pts(r.p) + "</td><td class='pct'>" + coma(r.pct, 0) + "%</td><td class='" + claseNota(r.n, e) + "'>" + coma(r.n, e.dec) + "</td></tr>";
+    }
+    html += "</tbody></table>";
+  }
+  $("tabla").innerHTML = html;
+  consultar(); curso(); encabezado(); guardar();
+}
+function dato(v, t) { return '<div class="dato"><b>' + v + "</b><span>" + t + "</span></div>"; }
+
+function consultar() {
+  var e = estado.e, p = num($("q-pts").value), n = num($("q-nota").value);
+  $("q-pts-r").innerHTML = isNaN(p) ? "" : (p < 0 || p > e.pmax ? "Fuera de rango (0 a " + pts(e.pmax) + ")" :
+    "Nota <span class='" + claseNota(notaDe(p, e), e) + "'>" + coma(notaDe(p, e), e.dec) + "</span> · " + coma(p / e.pmax * 100, 1) + " % de logro");
+  var q = puntosPara(n, e);
+  $("q-nota-r").innerHTML = isNaN(n) ? "" : (isNaN(q) ? "Esa nota no se alcanza con esta escala" : "Desde <b>" + pts(q) + "</b> puntos de " + pts(e.pmax));
+}
+
+/* ------------------------------------------------------------------ curso */
+function leerCurso() {
+  var lin = $("lista").value.split(/\r?\n/), out = [];
+  for (var i = 0; i < lin.length; i++) {
+    var t = lin[i].replace(/^\s+|\s+$/g, ""); if (!t) continue;
+    var m = t.match(/^(.*?)[\t;,| ]+(\d+(?:[.,]\d+)?)\s*$/) || t.match(/^(\d+(?:[.,]\d+)?)$/);
+    if (!m) continue;
+    var nombre = m.length > 2 ? m[1].replace(/[\t;,| ]+$/, "") : "Estudiante " + (out.length + 1);
+    out.push({ nombre: nombre, p: num(m[m.length > 2 ? 2 : 1]) });
+  }
+  return out;
+}
+function curso() {
+  var e = estado.e, l = leerCurso(), box = $("curso-res");
+  estado.curso = [];
+  if (!l.length) { box.innerHTML = '<p class="vacio">Opcional: pega nombres y puntajes para obtener las notas del curso, el promedio y la distribución.</p>'; return; }
+  var suma = 0, aprob = 0, notas = [], bins = [0, 0, 0, 0, 0, 0], html = "<table><thead><tr><th>Estudiante</th><th class='num'>Puntaje</th><th class='num'>Nota</th></tr></thead><tbody>";
+  for (var i = 0; i < l.length; i++) {
+    var p = Math.min(Math.max(l[i].p, 0), e.pmax), n = notaDe(p, e);
+    estado.curso.push({ nombre: l[i].nombre, p: p, n: n });
+    suma += n; notas.push(n); if (n >= e.napr) aprob++;
+    bins[Math.min(5, Math.max(0, Math.floor(n) - 1))]++;
+    html += "<tr><td>" + esc(l[i].nombre) + "</td><td class='num'>" + pts(p) + "</td><td class='num " + claseNota(n, e) + "'>" + coma(n, e.dec) + "</td></tr>";
+  }
+  notas.sort(function (a, b) { return a - b; });
+  var med = notas.length % 2 ? notas[(notas.length - 1) / 2] : (notas[notas.length / 2 - 1] + notas[notas.length / 2]) / 2;
+  var max = Math.max.apply(null, bins) || 1, h = "", et = "";
+  for (var b = 0; b < 6; b++) { h += "<div class='" + (b + 1 < e.napr ? "r" : "") + "' style='height:" + Math.round(bins[b] / max * 100) + "%' title='" + bins[b] + "'></div>"; et += "<span>" + (b + 1) + " · " + bins[b] + "</span>"; }
+  estado.stats = { prom: suma / l.length, med: med, aprob: aprob, total: l.length };
+  box.innerHTML = '<div class="resumen">' + dato(coma(redondear(suma / l.length, "aprox2"), 2), "promedio del curso") + dato(coma(med, e.dec), "mediana") +
+    dato(Math.round(aprob / l.length * 100) + " %", aprob + " de " + l.length + " aprobados") + dato(coma(notas[0], e.dec) + " – " + coma(notas[notas.length - 1], e.dec), "nota más baja y más alta") +
+    "</div><div class='hist'>" + h + "</div><div class='hist-et'>" + et + "</div>" + html + "</tbody></table>";
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+/* ------------------------------------------------------------------ encabezado y persistencia */
+function datosEval() { return { eval: $("d-eval").value, curso: $("d-curso").value, doc: $("d-doc").value, est: $("d-est").value, fecha: $("d-fecha").value }; }
+function titulo() { var d = datosEval(); return d.eval || "Escala de notas"; }
+function lineaInfo() {
+  var d = datosEval(), e = estado.e, partes = [];
+  if (d.curso) partes.push(d.curso); if (d.doc) partes.push("Docente: " + d.doc); if (d.est) partes.push(d.est); if (d.fecha) partes.push(fechaCL(d.fecha));
+  partes.push("Puntaje máximo " + pts(e.pmax) + " · exigencia " + coma(e.exig * 100, 0) + " % · notas " + coma(e.nmin) + " a " + coma(e.nmax));
+  return partes.join(" · ");
+}
+function fechaCL(iso) { var p = (iso || "").split("-"); return p.length === 3 ? p[2] + "-" + p[1] + "-" + p[0] : iso; }
+function encabezado() { $("encabezado-impreso").innerHTML = "<h1 style='font-size:18pt'>" + esc(titulo()) + "</h1><p style='margin:4px 0 12px'>" + esc(lineaInfo()) + "</p>"; }
+function guardar() { try { var o = {}; for (var i = 0; i < GUARDAR.length; i++) o[GUARDAR[i]] = $(GUARDAR[i]).value; localStorage.setItem("escala-notas", JSON.stringify(o)); } catch (x) {} }
+function cargar() { try { var o = JSON.parse(localStorage.getItem("escala-notas") || "{}"); for (var k in o) if ($(k) && o[k] !== undefined) $(k).value = o[k]; } catch (x) {} }
+
+/* ------------------------------------------------------------------ exportación (sin internet) */
+function aviso(t) { var a = $("aviso"); a.textContent = t; a.className = "aviso ver"; clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.className = "aviso"; }, 2200); }
+function nombreArchivo(ext) { var b = titulo().toLowerCase().replace(/[^a-z0-9áéíóúñü]+/gi, "-").replace(/^-|-$/g, "") || "escala-de-notas"; return b + "." + ext; }
+function utf8(s) { var u = unescape(encodeURIComponent(s)), a = new Uint8Array(u.length); for (var i = 0; i < u.length; i++) a[i] = u.charCodeAt(i); return a; }
+function b64(bytes) { var s = "", t = 0x8000; for (var i = 0; i < bytes.length; i += t) s += String.fromCharCode.apply(null, bytes.subarray(i, i + t)); return btoa(s); }
+/* Entrega el archivo: la app nativa (Linux, Windows, Android, Apple) lo guarda con su diálogo; en un navegador, descarga. */
+function entregar(nombre, mime, bytes) {
+  var datos = b64(bytes);
+  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.escala) { window.webkit.messageHandlers.escala.postMessage(JSON.stringify({ guardar: nombre, mime: mime, b64: datos })); return; }
+  if (window.EscalaNativa && window.EscalaNativa.guardar) { window.EscalaNativa.guardar(nombre, mime, datos); return; }
+  if (window.chrome && window.chrome.webview) { window.chrome.webview.postMessage(JSON.stringify({ guardar: nombre, mime: mime, b64: datos })); return; }
+  var a = document.createElement("a"); a.href = "data:" + mime + ";base64," + datos; a.download = nombre; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function tablaPlana() {
+  var e = estado.e, f = estado.filas, rows = [["Puntaje", "% de logro", "Nota"]];
+  for (var i = 0; i < f.length; i++) rows.push([pts(f[i].p), coma(f[i].pct, 1), coma(f[i].n, e.dec)]);
+  return rows;
+}
+function hojaCurso() { var c = estado.curso || [], rows = [["Estudiante", "Puntaje", "Nota"]]; for (var i = 0; i < c.length; i++) rows.push([c[i].nombre, pts(c[i].p), coma(c[i].n, estado.e.dec)]); return rows; }
+
+/* ZIP sin compresión (lo justo para .xlsx y .docx) */
+var CRC = (function () { var t = [], c; for (var n = 0; n < 256; n++) { c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { var c = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(archivos) {
+  var partes = [], central = [], off = 0;
+  function u16(v) { return [v & 255, (v >>> 8) & 255]; } function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+  for (var i = 0; i < archivos.length; i++) {
+    var nom = utf8(archivos[i][0]), dat = utf8(archivos[i][1]), crc = crc32(dat);
+    var cab = [].concat([0x50, 0x4b, 3, 4], u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(dat.length), u32(dat.length), u16(nom.length), u16(0));
+    partes.push(new Uint8Array(cab), nom, dat);
+    central.push(new Uint8Array([].concat([0x50, 0x4b, 1, 2], u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(dat.length), u32(dat.length), u16(nom.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(off))), nom);
+    off += cab.length + nom.length + dat.length;
+  }
+  var tamC = 0; for (var j = 0; j < central.length; j++) tamC += central[j].length;
+  var fin = new Uint8Array([].concat([0x50, 0x4b, 5, 6], u16(0), u16(0), u16(archivos.length), u16(archivos.length), u32(tamC), u32(off), u16(0)));
+  var todo = partes.concat(central, [fin]), total = 0, p = 0;
+  for (var k = 0; k < todo.length; k++) total += todo[k].length;
+  var out = new Uint8Array(total); for (var m = 0; m < todo.length; m++) { out.set(todo[m], p); p += todo[m].length; }
+  return out;
+}
+function xml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function hojaXlsx(rows, encab) {
+  var x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="30" customWidth="1"/><col min="2" max="3" width="14" customWidth="1"/></cols><sheetData>', r = 1;
+  function celda(v, col, estilo) { var n = num(v), ref = "ABC".charAt(col) + r; return /^-?\d+(,\d+)?$/.test(v) && !isNaN(n) ? '<c r="' + ref + '" s="' + (estilo || 0) + '"><v>' + n + "</v></c>" : '<c r="' + ref + '" t="inlineStr" s="' + (estilo || 0) + '"><is><t>' + xml(v) + "</t></is></c>"; }
+  for (var e = 0; e < encab.length; e++) { x += '<row r="' + r + '">' + celda(encab[e], 0, e === 0 ? 2 : 0) + "</row>"; r++; }
+  r++;
+  for (var i = 0; i < rows.length; i++, r++) { x += '<row r="' + r + '">'; for (var c = 0; c < rows[i].length; c++) x += celda(rows[i][c], c, i === 0 ? 1 : 0); x += "</row>"; }
+  return x + "</sheetData></worksheet>";
+}
+function xlsx() {
+  var hojas = [["Escala", hojaXlsx(tablaPlana(), [titulo(), lineaInfo()])]];
+  if ((estado.curso || []).length) hojas.push(["Curso", hojaXlsx(hojaCurso(), [titulo() + " — notas del curso", lineaInfo()])]);
+  var wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>',
+      rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+      tipos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
+      arch = [];
+  for (var i = 0; i < hojas.length; i++) {
+    wb += '<sheet name="' + hojas[i][0] + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>';
+    rels += '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>';
+    tipos += '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+    arch.push(["xl/worksheets/sheet" + (i + 1) + ".xml", hojas[i][1]]);
+  }
+  rels += '<Relationship Id="rIdE" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  var estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="3"><xf/><xf fontId="1" applyFont="1"/><xf fontId="2" applyFont="1"/></cellXfs></styleSheet>';
+  arch.push(["[Content_Types].xml", tipos + "</Types>"], ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+           ["xl/workbook.xml", wb + "</sheets></workbook>"], ["xl/_rels/workbook.xml.rels", rels], ["xl/styles.xml", estilos]);
+  entregar(nombreArchivo("xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", zip(arch));
+}
+function docx() {
+  function par(t, tam, negrita) { return '<w:p><w:r><w:rPr>' + (negrita ? "<w:b/>" : "") + '<w:sz w:val="' + tam + '"/></w:rPr><w:t xml:space="preserve">' + xml(t) + "</w:t></w:r></w:p>"; }
+  function tabla(rows) {
+    var x = '<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="4"/><w:bottom w:val="single" w:sz="4"/><w:insideH w:val="single" w:sz="2" w:color="BBBBBB"/></w:tblBorders></w:tblPr>';
+    for (var i = 0; i < rows.length; i++) { x += "<w:tr>"; for (var c = 0; c < rows[i].length; c++) {
+      var rojo = i > 0 && c === rows[i].length - 1 && num(rows[i][c]) < estado.e.napr;
+      x += '<w:tc><w:tcPr><w:tcW w:w="2200" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:jc w:val="' + (c === 0 ? "left" : "right") + '"/></w:pPr><w:r><w:rPr>' + (i === 0 ? "<w:b/>" : "") + (rojo ? '<w:color w:val="C00000"/>' : "") + "</w:rPr><w:t>" + xml(rows[i][c]) + "</w:t></w:r></w:p></w:tc>"; }
+      x += "</w:tr>"; }
+    return x + "</w:tbl>";
+  }
+  var cuerpo = par(titulo(), 32, true) + par(lineaInfo(), 20) + tabla(tablaPlana());
+  if ((estado.curso || []).length) cuerpo += par("", 20) + par("Notas del curso", 26, true) + tabla(hojaCurso());
+  var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + cuerpo + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>';
+  entregar(nombreArchivo("docx"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document", zip([
+    ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ["word/document.xml", doc]]));
+}
+function csv() {
+  var rows = [[titulo()], [lineaInfo()], []].concat(tablaPlana());
+  if ((estado.curso || []).length) rows = rows.concat([[], ["Notas del curso"]], hojaCurso());
+  var s = "﻿" + rows.map(function (r) { return r.map(function (v) { return /[;"\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v; }).join(";"); }).join("\r\n");
+  entregar(nombreArchivo("csv"), "text/csv", utf8(s));
+}
+function png() {
+  var e = estado.e, f = estado.filas, porCol = Math.ceil(f.length / Math.max(1, Math.ceil(f.length / 25))), cols = Math.ceil(f.length / porCol);
+  var esc2 = 2, anchoCol = 190, alto = 30, W = Math.max(560, cols * anchoCol + 48), H = 120 + porCol * alto + 40;
+  var cv = document.createElement("canvas"); cv.width = W * esc2; cv.height = H * esc2;
+  var g = cv.getContext("2d"); g.scale(esc2, esc2); g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#1c1c1e"; g.font = "bold 22px -apple-system, Segoe UI, Arial"; g.fillText(titulo(), 24, 40);
+  g.fillStyle = "#6e6e73"; g.font = "13px -apple-system, Segoe UI, Arial"; g.fillText(lineaInfo().slice(0, 110), 24, 64);
+  for (var c = 0; c < cols; c++) {
+    var x0 = 24 + c * anchoCol; g.fillStyle = "#6e6e73"; g.font = "bold 11px Arial"; g.fillText("PUNTAJE", x0, 100); g.fillText("NOTA", x0 + 110, 100);
+    for (var k = 0; k < porCol && c * porCol + k < f.length; k++) {
+      var r = f[c * porCol + k], y = 124 + k * alto;
+      g.fillStyle = "#e5e5ea"; g.fillRect(x0, y - 20, anchoCol - 20, 1);
+      g.fillStyle = "#1c1c1e"; g.font = "16px Arial"; g.fillText(pts(r.p), x0, y);
+      g.fillStyle = r.n < e.napr ? "#d70015" : "#0a63d6"; g.font = "bold 16px Arial"; g.fillText(coma(r.n, e.dec), x0 + 110, y);
+    }
+  }
+  g.fillStyle = "#8e8e93"; g.font = "11px Arial"; g.fillText("Escala de Notas · cálculo de notas escolares en Chile", 24, H - 16);
+  var d = cv.toDataURL("image/png").split(",")[1], bin = atob(d), u = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  entregar(nombreArchivo("png"), "image/png", u);
+}
+function copiar() {
+  var t = tablaPlana().map(function (r) { return r.join("\t"); }).join("\n");
+  var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+  var ok = false; try { ok = document.execCommand("copy"); } catch (x) {} document.body.removeChild(ta);
+  aviso(ok ? "Tabla copiada: pégala en Excel, Word o Docs" : "No se pudo copiar");
+}
+function exportar(tipo) {
+  if (!estado.e || !estado.e.ok) return aviso("Revisa los datos de la escala");
+  try {
+    if (tipo === "pdf") { encabezado(); window.print(); }
+    else if (tipo === "xlsx") xlsx(); else if (tipo === "docx") docx(); else if (tipo === "csv") csv(); else if (tipo === "png") png(); else copiar();
+  } catch (x) { aviso("No se pudo exportar: " + x.message); }
+}
+window.escalaGuardado = function (ok, ruta) { aviso(ok ? "Guardado: " + ruta : "No se guardó"); };
+
+/* ------------------------------------------------------------------ tema claro / oscuro / automático */
+function aplicarTema(t) {
+  if (t === "claro" || t === "oscuro") document.documentElement.setAttribute("data-tema", t); else document.documentElement.removeAttribute("data-tema");
+  var b = $("tema").getElementsByTagName("button");
+  for (var i = 0; i < b.length; i++) b[i].className = b[i].getAttribute("data-t") === (t || "auto") ? "on" : "";
+  try { localStorage.setItem("escala-notas-tema", t || "auto"); } catch (x) {}
+}
+(function () { var t = "auto"; try { t = localStorage.getItem("escala-notas-tema") || "auto"; } catch (x) {} aplicarTema(t);
+  var b = $("tema").getElementsByTagName("button"); for (var i = 0; i < b.length; i++) b[i].onclick = function () { aplicarTema(this.getAttribute("data-t")); }; })();
+
+/* ------------------------------------------------------------------ eventos */
+cargar();
+if (!$("d-fecha").value) { var h = new Date(); $("d-fecha").value = h.getFullYear() + "-" + ("0" + (h.getMonth() + 1)).slice(-2) + "-" + ("0" + h.getDate()).slice(-2); }
+var ids = ["pmax", "exig", "paso", "nmin", "napr", "nmax", "redondeo", "d-eval", "d-curso", "d-doc", "d-est", "d-fecha"];
+for (var i = 0; i < ids.length; i++) { $(ids[i]).oninput = dibujar; $(ids[i]).onchange = dibujar; }
+$("q-pts").oninput = consultar; $("q-nota").oninput = consultar; $("lista").oninput = function () { curso(); guardar(); };
+$("ver-pct").onchange = function () { $("tabla").className = "tabla-escala" + (this.checked ? "" : " oculto-pct"); };
+var rap = $("exig-rapida").getElementsByTagName("button");
+for (var j = 0; j < rap.length; j++) rap[j].onclick = function () { $("exig").value = this.getAttribute("data-v"); dibujar(); };
+var exp = document.querySelectorAll("[data-exp]");
+for (var k = 0; k < exp.length; k++) exp[k].onclick = function () { exportar(this.getAttribute("data-exp")); };
+dibujar();
+})();
+</script>
+</body>
+</html>

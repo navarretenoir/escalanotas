@@ -1,0 +1,12 @@
+ACUERDO DE USO — ESCALA DE NOTAS
+Desarrollada por Javiera Navarrete.
+
+1. Escala de Notas es software libre bajo la licencia GNU GPL versión 3 o posterior. Puedes usarla, copiarla,
+   estudiarla, modificarla y redistribuirla según esa licencia (texto completo: https://www.gnu.org/licenses/gpl-3.0.html).
+2. La app calcula notas con la fórmula de escala por tramos usada en Chile. Revisa siempre los resultados antes de
+   registrarlos oficialmente: la responsabilidad de las notas publicadas es de quien evalúa.
+3. La app no envía datos a ningún servidor ni contiene publicidad ni rastreadores. Lo que escribes queda sólo en
+   este equipo.
+4. Se entrega «tal cual», sin garantías, en la medida que lo permita la ley.
+
+Al continuar con la instalación aceptas este acuerdo.

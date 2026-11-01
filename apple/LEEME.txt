@@ -1,0 +1,4 @@
+Escala de Notas para macOS (Intel y Apple Silicon, binario universal) e iOS/iPadOS — desarrollada por Javiera Navarrete.
+Compilar en un Mac: brew install xcodegen && ./preparar-web.sh && xcodegen generate && open EscalaNotas.xcodeproj
+También lo compila el flujo de GitHub Actions del repositorio (.github/workflows/apple.yml). Publicar en la App Store
+requiere una cuenta de desarrolladora de Apple.
