@@ -16,6 +16,10 @@
   <url type="homepage">https://github.com/navarretenoir/escala-notas</url>
   <url type="vcs-browser">https://gitlab.com/navarretenoir/escala-notas</url>
   <url type="bugtracker">https://gitlab.com/navarretenoir/escala-notas/-/issues</url>
+  <screenshots>
+    <screenshot type="default"><image>https://raw.githubusercontent.com/navarretenoir/escala-notas/main/screenshots/1.png</image></screenshot>
+    <screenshot><image>https://raw.githubusercontent.com/navarretenoir/escala-notas/main/screenshots/2.png</image></screenshot>
+  </screenshots>
   <launchable type="desktop-id">io.github.navarretenoir.EscalaNotas.desktop</launchable>
   <provides><binary>escala-notas</binary></provides>
   <categories><category>Education</category></categories>
