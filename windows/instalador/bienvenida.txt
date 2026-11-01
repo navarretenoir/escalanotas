@@ -1,0 +1,11 @@
+Escala de Notas está hecha para el cálculo de notas escolares en Chile, de 1,0 a 7,0.
+
+Características:
+  • Escala con cualquier exigencia y puntaje máximo (también medio y cuarto de punto).
+  • Notas mínima, de aprobación y máxima ajustables, con aproximación o truncado.
+  • Calculadora: qué nota es un puntaje y cuántos puntos necesita una nota.
+  • Notas de todo un curso: promedio, mediana, aprobación y distribución.
+  • Exporta a PDF, Excel, Word, CSV e imagen, sin internet.
+  • Modo claro (cuaderno) y oscuro (pizarra).
+
+Desarrollada por Javiera Navarrete.

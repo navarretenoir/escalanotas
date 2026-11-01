@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Escala de Notas — ícono estilo iOS. Desarrollado por Javiera Navarrete (GPL-3.0-or-later). -->
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a95ff"/><stop offset="1" stop-color="#0a4fc2"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset=".5" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#f)"/>
+  <rect width="1024" height="1024" rx="230" fill="url(#b)"/>
+  <!-- hoja con renglones -->
+  <rect x="262" y="196" width="500" height="632" rx="56" fill="#ffffff"/>
+  <rect x="330" y="300" width="364" height="26" rx="13" fill="#d6e4fb"/>
+  <rect x="330" y="368" width="250" height="26" rx="13" fill="#d6e4fb"/>
+  <!-- la nota -->
+  <text x="512" y="660" text-anchor="middle" font-family="SF Pro Display, Helvetica Neue, Arial, sans-serif" font-size="250" font-weight="800" fill="#0a63d6">7,0</text>
+  <rect x="352" y="704" width="320" height="22" rx="11" fill="#0a63d6" opacity=".9"/>
+</svg>

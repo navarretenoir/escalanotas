@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.navarretenoir.EscalaNotas</id>
+  <name>Escala de Notas</name>
+  <name xml:lang="en">Grading Scale</name>
+  <summary>Escala de notas para el cálculo de notas escolares en Chile</summary>
+  <summary xml:lang="en">School grade calculator for Chile (1.0 to 7.0)</summary>
+  <developer id="io.github.navarretenoir"><name>Javiera Navarrete</name></developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>Escala de Notas está hecha para el cálculo de notas escolares en Chile: genera la escala de 1,0 a 7,0 con cualquier exigencia y puntaje máximo, responde qué nota corresponde a un puntaje y cuántos puntos se necesitan para una nota, y calcula las notas de todo un curso con promedio, mediana, porcentaje de aprobación y distribución.</p>
+    <p>Exporta a PDF, Excel, Word, CSV e imagen, sin internet. Modo claro (cuaderno) y oscuro (pizarra). Desarrollada por Javiera Navarrete.</p>
+    <p xml:lang="en">Grading Scale is made for calculating school grades in Chile: it builds the 1.0–7.0 scale for any passing threshold and maximum score, tells which grade a score gets and how many points a grade needs, and computes a whole class with average, median, pass rate and distribution. Exports to PDF, Excel, Word, CSV and image, offline. Light (notebook) and dark (chalkboard) themes. Developed by Javiera Navarrete.</p>
+  </description>
+  <url type="homepage">https://github.com/navarretenoir/escala-notas</url>
+  <url type="vcs-browser">https://gitlab.com/navarretenoir/escala-notas</url>
+  <url type="bugtracker">https://gitlab.com/navarretenoir/escala-notas/-/issues</url>
+  <launchable type="desktop-id">io.github.navarretenoir.EscalaNotas.desktop</launchable>
+  <provides><binary>escala-notas</binary></provides>
+  <categories><category>Education</category></categories>
+  <content_rating type="oars-1.1"/>
+  <releases><release version="1.0" date="2026-11-01"/></releases>
+</component>

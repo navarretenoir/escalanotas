@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Escala de Notas
+Name[en]=Grading Scale
+Comment=Cálculo de notas escolares en Chile, de 1,0 a 7,0
+Comment[en]=School grade calculator for Chile (1.0 to 7.0)
+Exec=escala-notas
+Icon=io.github.navarretenoir.EscalaNotas
+Terminal=false
+Categories=Education;Office;GTK;
+Keywords=notas;escala;colegio;profesor;evaluación;chile;grades;teacher;
+StartupWMClass=io.github.navarretenoir.EscalaNotas
+StartupNotify=true
+X-Developer=Javiera Navarrete

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Escala de Notas para Android 4.0 en adelante. Desarrollada por Javiera Navarrete. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- sólo Android 4.0–4.3: guardar exportaciones en Descargas (desde 4.4 se usa el diálogo del sistema, sin permisos) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
+    <application
+        android:label="Escala de Notas"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:theme="@style/Escala">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
