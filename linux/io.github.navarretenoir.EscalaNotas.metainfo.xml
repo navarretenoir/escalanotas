@@ -13,12 +13,12 @@
     <p>Exporta a PDF, Excel, Word, CSV e imagen, sin internet. Modo claro (cuaderno) y oscuro (pizarra). Desarrollada por Javiera Navarrete.</p>
     <p xml:lang="en">Grading Scale is made for calculating school grades in Chile: it builds the 1.0–7.0 scale for any passing threshold and maximum score, tells which grade a score gets and how many points a grade needs, and computes a whole class with average, median, pass rate and distribution. Exports to PDF, Excel, Word, CSV and image, offline. Light (notebook) and dark (chalkboard) themes. Developed by Javiera Navarrete.</p>
   </description>
-  <url type="homepage">https://github.com/navarretenoir/escala-notas</url>
-  <url type="vcs-browser">https://gitlab.com/navarretenoir/escala-notas</url>
-  <url type="bugtracker">https://gitlab.com/navarretenoir/escala-notas/-/issues</url>
+  <url type="homepage">https://github.com/navarretenoir/escalanotas</url>
+  <url type="vcs-browser">https://gitlab.com/navarretenoir/escalanotas</url>
+  <url type="bugtracker">https://gitlab.com/navarretenoir/escalanotas/-/issues</url>
   <screenshots>
-    <screenshot type="default"><image>https://raw.githubusercontent.com/navarretenoir/escala-notas/main/screenshots/1.png</image></screenshot>
-    <screenshot><image>https://raw.githubusercontent.com/navarretenoir/escala-notas/main/screenshots/2.png</image></screenshot>
+    <screenshot type="default"><image>https://raw.githubusercontent.com/navarretenoir/escalanotas/main/screenshots/1.png</image></screenshot>
+    <screenshot><image>https://raw.githubusercontent.com/navarretenoir/escalanotas/main/screenshots/2.png</image></screenshot>
   </screenshots>
   <launchable type="desktop-id">io.github.navarretenoir.EscalaNotas.desktop</launchable>
   <provides><binary>escala-notas</binary></provides>
