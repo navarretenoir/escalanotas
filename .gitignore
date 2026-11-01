@@ -7,3 +7,5 @@ local.properties
 apple/Recursos/web/
 herramientas/webview2
 herramientas/linux-pkg/runtime-x86_64
+# binarios compilados (se generan con make)
+desktop/escala-notas

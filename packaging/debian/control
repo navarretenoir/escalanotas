@@ -1,0 +1,16 @@
+Source: escala-notas
+Section: utils
+Priority: optional
+Maintainer: Javiera Navarrete <navarrete.noir@gmail.com>
+Build-Depends: debhelper-compat (= 13), pkgconf, libgtk-4-dev, libwebkitgtk-6.0-dev, libjson-glib-dev
+Standards-Version: 4.7.0
+Homepage: https://github.com/navarretenoir/escalanotas
+Rules-Requires-Root: no
+
+Package: escala-notas
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Chilean school grade scale calculator (1.0 to 7.0)
+ Calculates the Chilean 1.0-7.0 grade scale for any exigence and score, grades
+ for a whole class with average and distribution, and exports to PDF, Excel,
+ Word, CSV and image. Works offline. Interface in Spanish.

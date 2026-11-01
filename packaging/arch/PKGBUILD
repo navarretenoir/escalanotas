@@ -1,0 +1,28 @@
+# Maintainer: Javiera Navarrete <navarrete.noir@gmail.com>
+pkgname=escala-notas
+pkgver=1.0.1
+pkgrel=1
+pkgdesc="Escala de notas chilena de 1,0 a 7,0 para calcular notas escolares"
+arch=('x86_64')
+url="https://github.com/navarretenoir/escalanotas"
+license=('GPL-3.0-or-later')
+depends=('gtk4' 'webkitgtk-6.0' 'json-glib')
+makedepends=('gcc' 'make' 'pkgconf')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/navarretenoir/escalanotas/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')   # actualizar con updpkgsums
+
+build() {
+  cd "escalanotas-$pkgver"
+  rm -f desktop/escala-notas; make -C desktop UI_DIR=/usr/share/escala-notas/ui EXTRA_CFLAGS="$CFLAGS $LDFLAGS"
+}
+
+package() {
+  cd "escalanotas-$pkgver"
+  local D="$pkgdir"
+  install -Dm755 desktop/escala-notas "$D/usr/bin/escala-notas"
+  install -d "$D/usr/share/escala-notas"; cp -r ui "$D/usr/share/escala-notas/"; rm -f "$D/usr/share/escala-notas/ui/"*.bak*
+  install -Dm644 linux/io.github.navarretenoir.EscalaNotas.desktop "$D/usr/share/applications/io.github.navarretenoir.EscalaNotas.desktop"
+  install -Dm644 linux/io.github.navarretenoir.EscalaNotas.metainfo.xml "$D/usr/share/metainfo/io.github.navarretenoir.EscalaNotas.metainfo.xml"
+  install -Dm644 linux/io.github.navarretenoir.EscalaNotas.svg "$D/usr/share/icons/hicolor/scalable/apps/io.github.navarretenoir.EscalaNotas.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
