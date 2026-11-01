@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);                    // recuerda la última escala (localStorage)
         s.setAllowFileAccess(false);                      // sólo file:///android_asset (siempre permitido)
         s.setAllowContentAccess(false);
-        if (Build.VERSION.SDK_INT < 30) { s.setAllowFileAccessFromFileURLs(false); s.setAllowUniversalAccessFromFileURLs(false); }
+        if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 30) { s.setAllowFileAccessFromFileURLs(false); s.setAllowUniversalAccessFromFileURLs(false); }
         web.addJavascriptInterface(new Puente(), "EscalaNativa");
         setContentView(web);
         web.loadUrl("file:///android_asset/ui/index.html");
