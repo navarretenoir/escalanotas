@@ -11,7 +11,7 @@ void esc_defecto(Escala *e) {
 
 int esc_valida(const Escala *e) {
     return e->pmax > 0 && e->pmax <= 400 && e->exig > 0 && e->exig < 1 && e->paso > 0 &&
-           e->nmin < e->napr && e->napr < e->nmax && e->pmax / e->paso < ESC_MAX_FILAS - 1;
+           e->nmin < e->napr && e->napr < e->nmax && e->pmax / e->paso < ESC_MAX_FILAS - 2;
 }
 
 int esc_decimales(const Escala *e) { return e->modo == ESC_APROX2 ? 2 : 1; }
@@ -150,11 +150,14 @@ static void html_txt(FILE *f, const char *s) {
 }
 
 int esc_exportar(const Escala *e, const Curso *c, const char *ruta, int formato, const char *titulo, const char *info) {
-    static double pts[ESC_MAX_FILAS], notas[ESC_MAX_FILAS];
+    double *pts, *notas;
     char a[24], b[24], linea[160];
-    int n = esc_filas(e, pts, notas, ESC_MAX_FILAS), i, dec = esc_decimales(e), hay_curso = c && c->total > 0;
+    int n, i, dec = esc_decimales(e), hay_curso = c && c->total > 0;
     FILE *f = fopen(ruta, formato == ESC_RTF ? "wb" : "w");
     if (!f) return 0;
+    pts = (double *)malloc(sizeof(double) * ESC_MAX_FILAS); notas = (double *)malloc(sizeof(double) * ESC_MAX_FILAS);
+    if (!pts || !notas) { if (pts) free(pts); if (notas) free(notas); fclose(f); return 0; }
+    n = esc_filas(e, pts, notas, ESC_MAX_FILAS);
     if (!titulo || !*titulo) titulo = "Escala de notas";
     sprintf(linea, "Puntaje m\xC3\xA1ximo %s \xC2\xB7 exigencia %.0f %% \xC2\xB7 notas ", "", e->exig * 100);
     {   /* resumen de parámetros */
@@ -217,6 +220,7 @@ int esc_exportar(const Escala *e, const Curso *c, const char *ruta, int formato,
         }
         fputs("<p style=\"color:#888\">Escala de Notas \xE2\x80\x94 c\xC3\xA1lculo de notas escolares en Chile. Desarrollada por Javiera Navarrete.</p></body></html>\n", f);
     }
+    free(pts); free(notas);
     fclose(f);
     return 1;
 }
