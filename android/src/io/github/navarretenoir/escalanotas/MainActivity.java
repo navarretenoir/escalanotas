@@ -38,13 +38,16 @@ public class MainActivity extends Activity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);                    // recuerda la última escala (localStorage)
-        s.setAllowFileAccess(true);
-        web.setWebViewClient(new WebViewClient());
+        s.setAllowFileAccess(false);                      // sólo file:///android_asset (siempre permitido)
+        s.setAllowContentAccess(false);
+        if (Build.VERSION.SDK_INT < 30) { s.setAllowFileAccessFromFileURLs(false); s.setAllowUniversalAccessFromFileURLs(false); }
         web.addJavascriptInterface(new Puente(), "EscalaNativa");
         setContentView(web);
         web.loadUrl("file:///android_asset/ui/index.html");
         // window.print() → impresión de Android (también «Guardar como PDF»)
         web.setWebViewClient(new WebViewClient() {
+            // la app no navega: cualquier enlace externo se ignora (el puente sólo debe hablar con nuestra interfaz)
+            @Override public boolean shouldOverrideUrlLoading(WebView v, String url) { return !url.startsWith("file:///android_asset/"); }
             @Override public void onPageFinished(WebView v, String url) {
                 v.loadUrl("javascript:window.print=function(){EscalaNativa.imprimir();};");
             }

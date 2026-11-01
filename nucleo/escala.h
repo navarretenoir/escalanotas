@@ -16,7 +16,11 @@ typedef struct {
     int modo;
 } Escala;
 
-#define ESC_MAX_FILAS 1601          /* hasta 400 puntos en cuartos de punto */
+#ifdef __386__
+#define ESC_MAX_FILAS 1601          /* 32 bits: hasta 400 puntos en cuartos de punto */
+#else
+#define ESC_MAX_FILAS 641           /* 16 bits: hasta 160 puntos en cuartos de punto */
+#endif
 #define ESC_MAX_CURSO 120
 
 typedef struct { char nombre[40]; double p, n; } Alumno;

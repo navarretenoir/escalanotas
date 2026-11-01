@@ -18,7 +18,7 @@ targets:
   EscalaNotas-macOS:
     type: application
     platform: macOS
-    sources: [Comun, ui, { path: Recursos/web, type: folder, buildPhase: resources }, Recursos/Assets.xcassets]
+    sources: [Comun, EscalaNotas, { path: Recursos/web, type: folder, buildPhase: resources }, Recursos/Assets.xcassets]
     settings:
       base:
         PRODUCT_NAME: EscalaNotas
@@ -38,7 +38,7 @@ targets:
   EscalaNotas-iOS:
     type: application
     platform: iOS
-    sources: [Comun, ui, { path: Recursos/web, type: folder, buildPhase: resources }, Recursos/Assets.xcassets]
+    sources: [Comun, EscalaNotas, { path: Recursos/web, type: folder, buildPhase: resources }, Recursos/Assets.xcassets]
     settings:
       base:
         PRODUCT_NAME: EscalaNotas

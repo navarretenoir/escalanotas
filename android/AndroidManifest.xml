@@ -6,7 +6,7 @@
     <application
         android:label="Escala de Notas"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:theme="@style/Escala">
         <activity
             android:name=".MainActivity"
