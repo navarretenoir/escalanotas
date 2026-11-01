@@ -1,0 +1,5 @@
+Made for calculating school grades in Chile. Builds the 1.0–7.0 scale for any passing threshold and maximum score, tells which grade a score gets and how many points a grade needs, and computes a whole class with average, median, pass rate and distribution.
+
+Exports to Excel, Word, CSV, image and PDF. Works offline, with light (grid notebook) and dark (chalkboard) themes. No ads, no trackers. Android 4.0+. (Interface in Spanish.)
+
+Developed by Javiera Navarrete.

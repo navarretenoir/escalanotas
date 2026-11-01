@@ -1,0 +1,5 @@
+Hecha para el cálculo de notas escolares en Chile. Genera la escala de 1,0 a 7,0 con cualquier exigencia y puntaje, dice qué nota corresponde a un puntaje y cuántos puntos pide una nota, y calcula un curso completo con promedio, mediana, aprobación y distribución.
+
+Exporta a Excel, Word, CSV, imagen y PDF. Funciona sin internet, con modo claro (cuaderno cuadriculado) y oscuro (pizarra). Sin publicidad ni rastreadores. Android 4.0 o superior.
+
+Desarrollada por Javiera Navarrete.
