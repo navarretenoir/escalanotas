@@ -83,6 +83,15 @@ static int cmp_d(const void *a, const void *b) {
     return x < y ? -1 : x > y;
 }
 
+/* Copia el nombre recortado a 39 bytes sin partir un carácter UTF-8 (un «ñ» cortado a la mitad deja el archivo exportado inválido). */
+static void copiar_nombre(char *dst, const char *src) {
+    int n = 0;
+    while (src[n] && n < 39) n++;
+    if (src[n]) while (n > 0 && ((unsigned char)src[n] & 0xC0) == 0x80) n--;   /* retrocede hasta el inicio del carácter */
+    memcpy(dst, src, (size_t)n);
+    dst[n] = 0;
+}
+
 int esc_curso_leer(const Escala *e, const char *texto, Curso *c) {
     static double ord[ESC_MAX_CURSO];
     const char *l = texto;
@@ -109,7 +118,7 @@ int esc_curso_leer(const Escala *e, const char *texto, Curso *c) {
         lin[ini] = 0;
         if (p < 0) p = 0;
         if (p > e->pmax) p = e->pmax;
-        if (lin[0]) { strncpy(c->a[c->total].nombre, lin, 39); c->a[c->total].nombre[39] = 0; }
+        if (lin[0]) copiar_nombre(c->a[c->total].nombre, lin);
         else sprintf(c->a[c->total].nombre, "Estudiante %d", c->total + 1);
         c->a[c->total].p = p;
         c->a[c->total].n = esc_nota(e, p);
