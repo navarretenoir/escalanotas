@@ -50,6 +50,8 @@ static void curso(void) {
     if (!esc_curso_leer(&E, buf, &CU)) { printf("Sin datos validos.\n"); return; }
     for (i = 0; i < CU.total; i++) { esc_fmt(CU.a[i].p, 2, a); esc_fmt(CU.a[i].n, esc_decimales(&E), b); printf(" %-30s %7s  %s\n", CU.a[i].nombre, a, b); }
     esc_fmt(CU.promedio, 2, a); printf("\nPromedio %s  ·  %d de %d aprobados\n", a, CU.aprobados, CU.total);
+    if (CU.ajustados) printf("Aviso: %d puntaje(s) fuera de 0 a %.0f se llevaron al limite; revisa si hay errores de tipeo.\n", CU.ajustados, E.pmax);
+    if (CU.ignoradas) printf("Aviso: %d linea(s) sin puntaje valido no se incluyeron.\n", CU.ignoradas);
 }
 static void guardar(void) {
     char r[80]; int f;

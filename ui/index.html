@@ -20,17 +20,17 @@
 :root {
   --c: 24px;
   --mesa: #e9e7e1; --hoja: #fcfbf7; --cuadro: rgba(70,118,190,.17); --margen: #e06a60;
-  --tinta: #22262e; --lapiz: #5f6168; --tenue: #8b8c90; --azul: #1d4fb0; --rojo: #c8322b; --destacador: rgba(255,214,10,.42);
+  --tinta: #22262e; --lapiz: #5f6168; --tenue: #6d6f76; --azul: #1d4fb0; --rojo: #c8322b; --destacador: rgba(255,214,10,.42);
   --campo-linea: #9aa3b5; --boton: #1d4fb0; --boton-txt: #fff;
 }
 :root[data-tema="oscuro"] {
   --mesa: #141b18; --hoja: #1d2823; --cuadro: rgba(255,255,255,.065); --margen: #8a4a43;
-  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #7f887f; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
+  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #9aa39a; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
   --campo-linea: #56645c; --boton: #ece8dc; --boton-txt: #141b18;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-tema="claro"]) {
   --mesa: #141b18; --hoja: #1d2823; --cuadro: rgba(255,255,255,.065); --margen: #8a4a43;
-  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #7f887f; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
+  --tinta: #ece8dc; --lapiz: #b3b8b0; --tenue: #9aa39a; --azul: #9fc4ff; --rojo: #ff9585; --destacador: rgba(240,214,80,.20);
   --campo-linea: #56645c; --boton: #ece8dc; --boton-txt: #141b18; } }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -119,6 +119,7 @@ textarea { width: 100%; min-height: calc(var(--c) * 5); resize: vertical; font-f
 .curso td { height: var(--c); padding: 0 4px; line-height: 24px; }
 .curso td.num, .curso th.num { text-align: right; }
 .vacio { color: var(--lapiz); font-size: 14.5px; margin: 0; }
+.nota-curso { color: var(--rojo); font-size: 14px; line-height: 20px; margin: 0 0 var(--c); }
 .hist { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: flex-end; align-items: flex-end; height: calc(var(--c) * 4); margin-top: var(--c); }
 .hist div { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; margin: 0 6px; background: var(--azul); min-height: 2px; opacity: .8; }
 .hist div.r { background: var(--rojo); }
@@ -179,7 +180,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div class="col col-izq">
       <section class="bloque">
         <h2>Escala</h2>
-        <div class="fila"><label for="pmax">Puntaje máximo</label><input id="pmax" type="number" inputmode="decimal" min="1" step="0.5" value="60"></div>
+        <div class="fila"><label for="pmax">Puntaje máximo</label><input id="pmax" type="number" inputmode="decimal" min="1" max="400" step="0.5" value="60"></div>
         <div class="fila"><label for="exig">Exigencia<span class="ayuda">% del puntaje para el 4,0</span></label><input id="exig" type="number" inputmode="decimal" min="1" max="99" step="1" value="60"></div>
         <div class="rapida" id="exig-rapida"><button data-v="40">40 %</button><button data-v="50">50 %</button><button data-v="60">60 %</button></div>
         <div class="fila"><label for="paso">Intervalo de puntaje</label><select id="paso"><option value="1">1 punto</option><option value="0.5">½ punto</option><option value="0.25">¼ punto</option></select></div>
@@ -204,10 +205,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
     <div class="col col-der">
       <section class="hoja">
-        <div class="resumen" id="resumen"></div>
+        <div class="resumen" id="resumen" aria-live="polite"></div>
         <div class="calc no-imprimir">
-          <div><label for="q-pts">¿Qué nota es este puntaje?</label><input id="q-pts" type="text" inputmode="decimal" placeholder="Puntaje"><div class="salida" id="q-pts-r"></div></div>
-          <div><label for="q-nota">¿Cuántos puntos para esta nota?</label><input id="q-nota" type="text" inputmode="decimal" placeholder="Nota, ej. 5,5"><div class="salida" id="q-nota-r"></div></div>
+          <div><label for="q-pts">¿Qué nota es este puntaje?</label><input id="q-pts" type="text" inputmode="decimal" placeholder="Puntaje"><div class="salida" id="q-pts-r" role="status" aria-live="polite"></div></div>
+          <div><label for="q-nota">¿Cuántos puntos para esta nota?</label><input id="q-nota" type="text" inputmode="decimal" placeholder="Nota, ej. 5,5"><div class="salida" id="q-nota-r" role="status" aria-live="polite"></div></div>
         </div>
       </section>
 
@@ -233,7 +234,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div class="pie">Escala de Notas — hecha para el cálculo de notas escolares en Chile. Desarrollada por Javiera Navarrete.</div>
 </div>
-<div class="aviso" id="aviso"></div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <script>
 (function () {
@@ -255,7 +256,7 @@ function redondear(n, modo) {
 function leer() {
   var e = { pmax: num($("pmax").value), exig: num($("exig").value) / 100, paso: num($("paso").value),
             nmin: num($("nmin").value), napr: num($("napr").value), nmax: num($("nmax").value), modo: $("redondeo").value };
-  e.ok = e.pmax > 0 && e.exig > 0 && e.exig < 1 && e.nmin < e.napr && e.napr < e.nmax && e.paso > 0;
+  e.ok = e.pmax > 0 && e.pmax <= 400 && e.exig > 0 && e.exig < 1 && e.nmin < e.napr && e.napr < e.nmax && e.paso > 0;   // 400 puntos como máximo (igual que el núcleo C)
   e.papr = e.pmax * e.exig;                                     // puntaje exacto para la nota de aprobación (sin redondear)
   e.dec = e.modo === "aprox2" ? 2 : 1;
   return e;
@@ -285,7 +286,7 @@ function dibujar() {
   var e = leer(); estado.e = e;
   var exs = $("exig-rapida").getElementsByTagName("button");
   for (var i = 0; i < exs.length; i++) exs[i].className = Math.abs(num(exs[i].getAttribute("data-v")) - e.exig * 100) < 1e-9 ? "on" : "";
-  if (!e.ok) { $("resumen").innerHTML = '<div class="dato"><b>Revisa los datos</b><span>La nota mínima debe ser menor que la de aprobación, y esta menor que la máxima.</span></div>'; $("tabla").innerHTML = ""; return; }
+  if (!e.ok) { $("resumen").innerHTML = '<div class="dato"><b>Revisa los datos</b><span>El puntaje máximo debe estar entre 1 y 400; la nota mínima debe ser menor que la de aprobación, y esta menor que la máxima.</span></div>'; $("tabla").innerHTML = ""; return; }
   var f = filas(e); estado.filas = f;
   var paprMin = puntosPara(e.napr, e);
   $("resumen").innerHTML =
@@ -320,10 +321,11 @@ function consultar() {
 /* ------------------------------------------------------------------ curso */
 function leerCurso() {
   var lin = $("lista").value.split(/\r?\n/), out = [];
+  out.ignoradas = 0;
   for (var i = 0; i < lin.length; i++) {
     var t = lin[i].replace(/^\s+|\s+$/g, ""); if (!t) continue;
     var m = t.match(/^(.*?)[\t;,| ]+(\d+(?:[.,]\d+)?)\s*$/) || t.match(/^(\d+(?:[.,]\d+)?)$/);
-    if (!m) continue;
+    if (!m) { out.ignoradas++; continue; }
     var nombre = m.length > 2 ? m[1].replace(/[\t;,| ]+$/, "") : "Estudiante " + (out.length + 1);
     out.push({ nombre: nombre, p: num(m[m.length > 2 ? 2 : 1]) });
   }
@@ -332,10 +334,12 @@ function leerCurso() {
 function curso() {
   var e = estado.e, l = leerCurso(), box = $("curso-res");
   estado.curso = [];
-  if (!l.length) { box.innerHTML = '<p class="vacio">Opcional: pega nombres y puntajes para obtener las notas del curso, el promedio y la distribución.</p>'; return; }
-  var suma = 0, aprob = 0, notas = [], bins = [0, 0, 0, 0, 0, 0], html = "<table><thead><tr><th>Estudiante</th><th class='num'>Puntaje</th><th class='num'>Nota</th></tr></thead><tbody>";
+  if (!l.length) { box.innerHTML = l.ignoradas ? '<p class="nota-curso" role="status">Ninguna línea tiene un puntaje válido: escribe el nombre y luego el puntaje, por ejemplo «Ana Pérez  48».</p>'
+    : '<p class="vacio">Opcional: pega nombres y puntajes para obtener las notas del curso, el promedio y la distribución.</p>'; return; }
+  var suma = 0, aprob = 0, notas = [], bins = [0, 0, 0, 0, 0, 0], ajustados = 0, html = "<table><thead><tr><th>Estudiante</th><th class='num'>Puntaje</th><th class='num'>Nota</th></tr></thead><tbody>";
   for (var i = 0; i < l.length; i++) {
     var p = Math.min(Math.max(l[i].p, 0), e.pmax), n = notaDe(p, e);
+    if (p !== l[i].p) ajustados++;
     estado.curso.push({ nombre: l[i].nombre, p: p, n: n });
     suma += n; notas.push(n); if (n >= e.napr) aprob++;
     bins[Math.min(5, Math.max(0, Math.floor(n) - 1))]++;
@@ -345,8 +349,11 @@ function curso() {
   var med = notas.length % 2 ? notas[(notas.length - 1) / 2] : (notas[notas.length / 2 - 1] + notas[notas.length / 2]) / 2;
   var max = Math.max.apply(null, bins) || 1, h = "", et = "";
   for (var b = 0; b < 6; b++) { h += "<div class='" + (b + 1 < e.napr ? "r" : "") + "' style='height:" + Math.round(bins[b] / max * 100) + "%' title='" + bins[b] + "'></div>"; et += "<span>" + (b + 1) + " · " + bins[b] + "</span>"; }
+  var avisos = "";
+  if (ajustados) avisos += "<p class='nota-curso' role='status'>" + ajustados + (ajustados === 1 ? " puntaje superaba" : " puntajes superaban") + " el máximo de " + pts(e.pmax) + " y se llevó" + (ajustados === 1 ? "" : "on") + " al límite: revisa si hay errores de tipeo.</p>";
+  if (l.ignoradas) avisos += "<p class='nota-curso' role='status'>" + l.ignoradas + (l.ignoradas === 1 ? " línea sin puntaje no se incluyó" : " líneas sin puntaje no se incluyeron") + " en el curso.</p>";
   estado.stats = { prom: suma / l.length, med: med, aprob: aprob, total: l.length };
-  box.innerHTML = '<div class="resumen">' + dato(coma(redondear(suma / l.length, "aprox2"), 2), "promedio del curso") + dato(coma(med, e.dec), "mediana") +
+  box.innerHTML = avisos + '<div class="resumen">' + dato(coma(redondear(suma / l.length, "aprox2"), 2), "promedio del curso") + dato(coma(med, e.dec), "mediana") +
     dato(Math.round(aprob / l.length * 100) + " %", aprob + " de " + l.length + " aprobados") + dato(coma(notas[0], e.dec) + " – " + coma(notas[notas.length - 1], e.dec), "nota más baja y más alta") +
     "</div><div class='hist'>" + h + "</div><div class='hist-et'>" + et + "</div>" + html + "</tbody></table>";
 }
@@ -452,10 +459,17 @@ function docx() {
     ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
     ["word/document.xml", doc]]));
 }
+/* Celda CSV: entre comillas si trae ; " o saltos de línea, y con apóstrofo delante si empieza con = + - @ (Excel/Calc lo ejecutarían como fórmula). */
+function celdaCsv(v) {
+  v = String(v);
+  var formula = /^[=+\-@]/.test(v) && isNaN(num(v));
+  if (formula) v = "'" + v;
+  return /[;"\r\n]/.test(v) || formula ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
 function csv() {
   var rows = [[titulo()], [lineaInfo()], []].concat(tablaPlana());
   if ((estado.curso || []).length) rows = rows.concat([[], ["Notas del curso"]], hojaCurso());
-  var s = "﻿" + rows.map(function (r) { return r.map(function (v) { return /[;"\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v; }).join(";"); }).join("\r\n");
+  var s = "﻿" + rows.map(function (r) { return r.map(celdaCsv).join(";"); }).join("\r\n");
   entregar(nombreArchivo("csv"), "text/csv", utf8(s));
 }
 function png() {
@@ -498,7 +512,7 @@ window.escalaGuardado = function (ok, ruta) { aviso(ok ? "Guardado: " + ruta : "
 function aplicarTema(t) {
   if (t === "claro" || t === "oscuro") document.documentElement.setAttribute("data-tema", t); else document.documentElement.removeAttribute("data-tema");
   var b = $("tema").getElementsByTagName("button");
-  for (var i = 0; i < b.length; i++) b[i].className = b[i].getAttribute("data-t") === (t || "auto") ? "on" : "";
+  for (var i = 0; i < b.length; i++) { b[i].className = b[i].getAttribute("data-t") === (t || "auto") ? "on" : ""; b[i].setAttribute("aria-pressed", b[i].className === "on" ? "true" : "false"); }
   try { localStorage.setItem("escala-notas-tema", t || "auto"); } catch (x) {}
 }
 (function () { var t = "auto"; try { t = localStorage.getItem("escala-notas-tema") || "auto"; } catch (x) {} aplicarTema(t);

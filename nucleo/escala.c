@@ -78,6 +78,16 @@ static void fmt_pts(double p, char *out) {           /* 36 → «36», 36,5 → 
     for (q = out; *q; q++) if (*q == '.') *q = ',';
 }
 
+/* Celda de texto para CSV (separador «;»): entre comillas si trae ; " o saltos de línea, y con un apóstrofo delante
+ * si empieza con = + - @ (si no, Excel/Calc lo ejecutaría como fórmula al abrir el archivo). */
+static void csv_txt(FILE *f, const char *s) {
+    int comillas = strpbrk(s, ";\"\r\n") != NULL || *s == '=' || *s == '+' || *s == '-' || *s == '@';
+    if (comillas) fputc('"', f);
+    if (*s == '=' || *s == '+' || *s == '-' || *s == '@') fputc('\'', f);
+    for (; *s; s++) { if (*s == '"') fputc('"', f); fputc(*s == '\r' || *s == '\n' ? ' ' : *s, f); }
+    if (comillas) fputc('"', f);
+}
+
 static int cmp_d(const void *a, const void *b) {
     double x = *(const double *)a, y = *(const double *)b;
     return x < y ? -1 : x > y;
@@ -111,13 +121,13 @@ int esc_curso_leer(const Escala *e, const char *texto, Curso *c) {
         fin = n;
         ini = fin;
         while (ini > 0 && ((lin[ini - 1] >= '0' && lin[ini - 1] <= '9') || lin[ini - 1] == ',' || lin[ini - 1] == '.')) ini--;
-        if (ini == fin) continue;
+        if (ini == fin) { c->ignoradas++; continue; }
         p = esc_num(lin + ini);
-        if (p < -1e8) continue;
+        if (p < -1e8) { c->ignoradas++; continue; }
         while (ini > 0 && (lin[ini - 1] == ' ' || lin[ini - 1] == '\t' || lin[ini - 1] == ';' || lin[ini - 1] == '|')) ini--;
         lin[ini] = 0;
-        if (p < 0) p = 0;
-        if (p > e->pmax) p = e->pmax;
+        if (p < 0) { p = 0; c->ajustados++; }
+        if (p > e->pmax) { p = e->pmax; c->ajustados++; }
         if (lin[0]) copiar_nombre(c->a[c->total].nombre, lin);
         else sprintf(c->a[c->total].nombre, "Estudiante %d", c->total + 1);
         c->a[c->total].p = p;
@@ -176,11 +186,13 @@ int esc_exportar(const Escala *e, const Curso *c, const char *ruta, int formato,
     }
     if (formato == ESC_CSV) {
         fputs("\xEF\xBB\xBF", f);
-        fprintf(f, "%s\n%s%s%s\n\nPuntaje;%% de logro;Nota\n", titulo, info && *info ? info : "", info && *info ? " \xC2\xB7 " : "", linea);
+        csv_txt(f, titulo); fputc('\n', f);
+        if (info && *info) { csv_txt(f, info); fputs(" \xC2\xB7 ", f); }
+        csv_txt(f, linea); fputs("\n\nPuntaje;% de logro;Nota\n", f);
         for (i = 0; i < n; i++) { fmt_pts(pts[i], a); esc_fmt(notas[i], dec, b); fprintf(f, "%s;%.1f;%s\n", a, pts[i] / e->pmax * 100, b); }
         if (hay_curso) {
             fputs("\nNotas del curso\nEstudiante;Puntaje;Nota\n", f);
-            for (i = 0; i < c->total; i++) { fmt_pts(c->a[i].p, a); esc_fmt(c->a[i].n, dec, b); fprintf(f, "%s;%s;%s\n", c->a[i].nombre, a, b); }
+            for (i = 0; i < c->total; i++) { fmt_pts(c->a[i].p, a); esc_fmt(c->a[i].n, dec, b); csv_txt(f, c->a[i].nombre); fprintf(f, ";%s;%s\n", a, b); }
         }
     } else if (formato == ESC_TXT) {
         fprintf(f, "%s\n%s%s%s\n\n", titulo, info && *info ? info : "", info && *info ? " \xC2\xB7 " : "", linea);
@@ -230,6 +242,6 @@ int esc_exportar(const Escala *e, const Curso *c, const char *ruta, int formato,
         fputs("<p style=\"color:#888\">Escala de Notas \xE2\x80\x94 c\xC3\xA1lculo de notas escolares en Chile. Desarrollada por Javiera Navarrete.</p></body></html>\n", f);
     }
     free(pts); free(notas);
-    fclose(f);
-    return 1;
+    if (ferror(f)) { fclose(f); return 0; }          /* disco lleno o medio retirado: no se declara éxito */
+    return fclose(f) == 0;
 }

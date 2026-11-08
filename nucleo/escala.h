@@ -27,6 +27,8 @@ typedef struct { char nombre[40]; double p, n; } Alumno;
 typedef struct {
     Alumno a[ESC_MAX_CURSO]; int total;
     double promedio, mediana, nota_baja, nota_alta; int aprobados; int bins[6];
+    int ajustados;      /* puntajes fuera de 0..pmax que se llevaron al límite (posible error de tipeo) */
+    int ignoradas;      /* líneas con texto pero sin puntaje válido: no entran al curso */
 } Curso;
 
 void   esc_defecto(Escala *e);

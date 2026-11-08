@@ -48,6 +48,11 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             // la app no navega: cualquier enlace externo se ignora (el puente sólo debe hablar con nuestra interfaz)
             @Override public boolean shouldOverrideUrlLoading(WebView v, String url) { return !url.startsWith("file:///android_asset/"); }
+            // si Android cierra el proceso de la vista web (poca memoria), se recrea la pantalla en vez de cerrar la app
+            @Override public boolean onRenderProcessGone(WebView v, android.webkit.RenderProcessGoneDetail d) {
+                runOnUiThread(new Runnable() { public void run() { recreate(); } });
+                return true;
+            }
             @Override public void onPageFinished(WebView v, String url) {
                 v.loadUrl("javascript:window.print=function(){EscalaNativa.imprimir();};");
             }
@@ -60,18 +65,24 @@ public class MainActivity extends Activity {
     }
 
     private void avisar(boolean ok, String donde) {
-        final String js = "javascript:window.escalaGuardado&&escalaGuardado(" + ok + "," + jsTexto(donde) + ")";
-        runOnUiThread(new Runnable() { public void run() { web.loadUrl(js); } });
+        final String js = "window.escalaGuardado&&escalaGuardado(" + ok + "," + jsTexto(donde) + ")";
+        runOnUiThread(new Runnable() { public void run() {
+            if (web == null) return;
+            // evaluateJavascript (Android 4.4+) no interpreta «%» ni saltos de línea como lo hace una URL javascript:
+            if (Build.VERSION.SDK_INT >= 19) web.evaluateJavascript(js, null); else web.loadUrl("javascript:" + js);
+        } });
     }
 
     private static String jsTexto(String s) {
-        return "'" + (s == null ? "" : s.replace("\\", "\\\\").replace("'", "\\'")) + "'";
+        return "'" + (s == null ? "" : s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ").replace("\r", " ")) + "'";
     }
 
     final class Puente {
         @JavascriptInterface
         public void guardar(String nombre, String mime, String b64) {
-            final byte[] datos = Base64.decode(b64, Base64.DEFAULT);
+            final byte[] datos;
+            try { datos = Base64.decode(b64, Base64.DEFAULT); }
+            catch (IllegalArgumentException e) { avisar(false, "datos de exportación dañados"); return; }   // una excepción aquí cerraría la app
             if (Build.VERSION.SDK_INT >= 19) {
                 pendiente = datos;
                 final Intent i = dialogoGuardar(nombre, mime);
@@ -111,8 +122,7 @@ public class MainActivity extends Activity {
             dir.mkdirs();
             File f = new File(dir, nombre);
             FileOutputStream o = new FileOutputStream(f);
-            o.write(datos);
-            o.close();
+            try { o.write(datos); } finally { o.close(); }
             avisar(true, f.getAbsolutePath());
         } catch (Exception e) {
             avisar(false, e.getMessage());
@@ -127,8 +137,8 @@ public class MainActivity extends Activity {
         Uri u = datos.getData();
         try {
             OutputStream o = getContentResolver().openOutputStream(u);
-            o.write(pendiente);
-            o.close();
+            if (o == null) throw new java.io.IOException("no se pudo abrir el destino");
+            try { o.write(pendiente); } finally { o.close(); }
             avisar(true, "el archivo elegido");
         } catch (Exception e) {
             avisar(false, e.getMessage());
