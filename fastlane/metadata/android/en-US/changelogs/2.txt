@@ -1,0 +1,1 @@
+Warnings when pasting class lists, safer CSV export, better contrast and improved stability.

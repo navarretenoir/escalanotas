@@ -14,8 +14,8 @@ android {
         applicationId = "io.github.navarretenoir.escalanotas"
         minSdk = 14          // Android 4.0
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
     }
     sourceSets["main"].apply {
         manifest.srcFile("AndroidManifest.xml")

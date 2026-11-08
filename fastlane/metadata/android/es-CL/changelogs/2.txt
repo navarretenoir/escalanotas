@@ -1,0 +1,1 @@
+Avisos al pegar listas del curso, exportación CSV más segura, mejor contraste y mayor estabilidad.

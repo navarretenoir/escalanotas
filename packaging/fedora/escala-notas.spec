@@ -1,5 +1,5 @@
 Name:           escala-notas
-Version:        1.0.1
+Version:        1.1.0
 Release:        1%{?dist}
 Summary:        Escala de notas chilena de 1,0 a 7,0 para calcular notas escolares
 License:        GPL-3.0-or-later
@@ -43,5 +43,8 @@ appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/io.github
 
 
 %changelog
+* Sun Nov 08 2026 Javiera Navarrete <navarrete.noir@gmail.com> - 1.1.0-1
+- Versión 1.1.0 (ver CHANGELOG.md).
+
 * Sun Nov 01 2026 Javiera Navarrete <navarrete.noir@gmail.com> - 1.0.1-1
 - Paquete inicial desde el código fuente.

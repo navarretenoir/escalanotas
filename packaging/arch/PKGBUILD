@@ -1,6 +1,6 @@
 # Maintainer: Javiera Navarrete <navarrete.noir@gmail.com>
 pkgname=escala-notas
-pkgver=1.0.1
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="Escala de notas chilena de 1,0 a 7,0 para calcular notas escolares"
 arch=('x86_64')
