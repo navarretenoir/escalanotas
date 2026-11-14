@@ -8,4 +8,3 @@ Características:
   • Exporta a PDF, Excel, Word, CSV e imagen, sin internet.
   • Modo claro (cuaderno) y oscuro (pizarra).
 
-Desarrollada por Javiera Navarrete.

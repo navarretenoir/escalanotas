@@ -14,6 +14,6 @@
 #define APP_ALTO            820
 #define APP_COLOR_FONDO     RGB(0xE9, 0xE7, 0xE1)
 #define APP_ACERCA          L"Escala de Notas 1.0 para Windows\n\nHecha para el cálculo de notas escolares en Chile (1,0 a 7,0).\n" \
-                            L"Desarrollada por Javiera Navarrete. Licencia GPL-3.0-or-later.\n\nFuncionamiento sin internet."
+                            L"Licencia GPL-3.0-or-later.\n\nFuncionamiento sin internet."
 static const WCHAR *APP_FUERA[] = {L"http://", L"https://github.com/", L"https://gitlab.com/", NULL};
 static const WCHAR *APP_PERMITIDOS[] = {NULL};

@@ -1,5 +1,4 @@
 ACUERDO DE USO — ESCALA DE NOTAS
-Desarrollada por Javiera Navarrete.
 
 1. Escala de Notas es software libre bajo la licencia GNU GPL versión 3 o posterior. Puedes usarla, copiarla,
    estudiarla, modificarla y redistribuirla según esa licencia (texto completo: https://www.gnu.org/licenses/gpl-3.0.html).

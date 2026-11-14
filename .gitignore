@@ -1,5 +1,7 @@
 build/
 dist/
+symbian/build/
+symbian/dist/
 .gradle/
 local.properties
 *.apk
